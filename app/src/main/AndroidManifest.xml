@@ -9,7 +9,7 @@
         android:name=".WeatherApplication"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".WeatherActivity">
+        <activity android:name=".screen.WeatherActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 

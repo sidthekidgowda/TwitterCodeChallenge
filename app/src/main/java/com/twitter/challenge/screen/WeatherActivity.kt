@@ -1,7 +1,8 @@
-package com.twitter.challenge
+package com.twitter.challenge.screen
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.twitter.challenge.R
 
 class WeatherActivity : AppCompatActivity(R.layout.weather_activity) {
 
