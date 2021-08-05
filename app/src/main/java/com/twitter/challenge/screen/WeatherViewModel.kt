@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.twitter.challenge.datasource.WeatherDataSource
 import com.twitter.challenge.model.Weather
+import com.twitter.challenge.model.WeatherResponse
 import com.twitter.challenge.model.calculateStandardDeviation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -59,21 +60,22 @@ class WeatherViewModel @Inject constructor(
 
         viewModelScope.launch {
             weatherDataSource.currentWeather()
-                    .map { _weatherState.value.copy(
-                            weatherloading = false,
-                            weatherResult = WeatherResult(it, -1.0)
-                    ) }
-                    .catch { e ->
-                        Log.e(TAG, e.message ?: e.localizedMessage)
-                        emit(
+                    .map {
+                        when(it) {
+                            is WeatherResponse.Failure ->
                                 WeatherState(
-                                        weatherloading = false,
-                                        weatherError = true,
-                                        weatherResult = null,
-                                        nextFiveLoading = false,
-                                        stdDevError = false
+                                    weatherloading = false,
+                                    weatherError = true,
+                                    weatherResult = null,
+                                    nextFiveLoading = false,
+                                    stdDevError = false
                                 )
-                        )
+                            is WeatherResponse.Success ->
+                                _weatherState.value.copy(
+                                weatherloading = false,
+                                weatherResult = WeatherResult(it.weather, -1.0)
+                            )
+                        }
                     }
                     .flowOn(computationDispatcher)
                     .collect { weatherState ->

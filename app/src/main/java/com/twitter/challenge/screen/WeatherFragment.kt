@@ -32,7 +32,6 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
 
     private val viewModel: WeatherViewModel by viewModels()
 
-    //ideally would like to inject this
     private val nDays: IntRange = 1..5
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -59,44 +58,42 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
     }
 
     private fun WeatherViewModel.WeatherState.updateScreen() {
-        when {
-            weatherloading -> {
-                loadingTextView.isVisible = true
-            }
-            weatherError -> {
-                loadingTextView.text = getString(R.string.current_weather_error)
-            }
-            nextFiveLoading -> {
-                nextFiveButton.isClickable = false
-                nextFiveButton.text = getString(R.string.loading)
-                standardDeviationGroup.isVisible = false
-            }
-            stdDevError -> {
-                nextFiveButton.text = getString(R.string.next_five_days)
-                nextFiveButton.isClickable = true
-                standardDeviationGroup.isVisible = true
-                standardDevTextView.text = getString(R.string.std_dev_error)
-            }
-            weatherResult != null -> {
-                loadingTextView.isVisible = false
-                currentWeatherGroup.isVisible = true
-                nextFiveButton.isVisible = true
-                nextFiveButton.text = getString(R.string.next_five_days)
-                val currentTemp = weatherResult.weather.currentWeather.temp
-                temperatureTexView.text = getString(R.string.temperature, currentTemp, TemperatureConverter.celsiusToFahrenheit(currentTemp.toFloat()))
-                val windSpeed = weatherResult.weather.wind.speed
-                windSpeedTextView.text = getString(R.string.wind_speed, windSpeed)
+        if (weatherResult != null) {
+            loadingTextView.isVisible = false
+            currentWeatherGroup.isVisible = true
+            nextFiveButton.isVisible = true
+            nextFiveButton.text = getString(R.string.next_five_days)
+            val currentTemp = weatherResult.weather.currentWeather.temp
+            temperatureTexView.text = getString(R.string.temperature, currentTemp, TemperatureConverter.celsiusToFahrenheit(currentTemp.toFloat()))
+            val windSpeed = weatherResult.weather.wind.speed
+            windSpeedTextView.text = getString(R.string.wind_speed, windSpeed)
 
-                if (weatherResult.weather.clouds.cloudiness > 50) {
-                    cloudImage.isVisible = true
-                }
-                // stdDev returned
-                if (weatherResult.stdDev > -1) {
-                    standardDeviationGroup.isVisible = true
-                    nextFiveButton.isVisible = false
-                    standardDevTextView.text = weatherResult.stdDev.toString()
-                }
+            if (weatherResult.weather.clouds.cloudiness > 50) {
+                cloudImage.isVisible = true
             }
+            // stdDev returned
+            if (weatherResult.stdDev > -1) {
+                standardDeviationGroup.isVisible = true
+                nextFiveButton.isVisible = false
+                standardDevTextView.text = weatherResult.stdDev.toString()
+            }
+        }
+        if (weatherloading) {
+            loadingTextView.isVisible = true
+        }
+        if (weatherError) {
+            loadingTextView.text = getString(R.string.current_weather_error)
+        }
+        if (nextFiveLoading) {
+            nextFiveButton.isClickable = false
+            nextFiveButton.text = getString(R.string.loading)
+            standardDeviationGroup.isVisible = false
+        }
+        if (stdDevError) {
+            nextFiveButton.text = getString(R.string.next_five_days)
+            nextFiveButton.isClickable = true
+            standardDeviationGroup.isVisible = true
+            standardDevTextView.text = getString(R.string.std_dev_error)
         }
     }
 }

@@ -39,3 +39,8 @@ data class Rain(
 data class Clouds(
     val cloudiness: Int
 ) : Serializable
+
+sealed class WeatherResponse {
+    data class Success(val weather: Weather): WeatherResponse()
+    data class Failure(val t: Throwable?) : WeatherResponse()
+}

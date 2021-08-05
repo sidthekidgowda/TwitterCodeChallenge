@@ -1,14 +1,11 @@
 package com.twitter.challenge.datasource
 
+import android.util.Log
 import com.twitter.challenge.model.Weather
+import com.twitter.challenge.model.WeatherResponse
 import com.twitter.challenge.network.WeatherAPI
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -17,15 +14,37 @@ class WeatherDataSourceImpl @Inject constructor(
     @Named("io") private val ioDispatcher: CoroutineDispatcher
 ) : WeatherDataSource {
 
-    override fun currentWeather(): Flow<Weather> {
-        return flow {
+    companion object {
+        private val TAG = WeatherDataSourceImpl::class.java.simpleName
+    }
+
+    private val scope = CoroutineScope(SupervisorJob())
+
+    private val currentWeather: SharedFlow<WeatherResponse> = fetchCurrentWeather()
+        .shareIn(
+            scope = scope,
+            replay = 1,
+            started = SharingStarted.WhileSubscribed(5000)
+        )
+
+    override fun currentWeather(): Flow<WeatherResponse> {
+        return currentWeather
+    }
+
+    private fun fetchCurrentWeather(): Flow<WeatherResponse> {
+        return flow<WeatherResponse> {
             val weather = weatherAPI.currentWeather()
-            emit(weather)
-        }.flowOn(ioDispatcher)
+            emit(WeatherResponse.Success(weather))
+        }.catch { t ->
+            Log.e(TAG, t.message ?: "Failed fetching current weather")
+            emit(WeatherResponse.Failure(t))
+        }
+        .flowOn(ioDispatcher)
     }
 
     override fun futureWeatherForDays(days: IntRange): Flow<List<Weather>> {
         return flow {
+            delay(5000)
             coroutineScope {
                 val futureWeatherDeferred = days.map {
                     async { weatherAPI.futureWeatherForDay(it) }
