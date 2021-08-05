@@ -18,16 +18,29 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+    }
+
+    @Provides
+    @Singleton
+    fun providesOKHttpClient(loggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
+        return OkHttpClient.Builder().addNetworkInterceptor(loggingInterceptor).build()
+    }
+
+    @Provides
+    @Singleton
     fun providesMoshi(): Moshi {
         return Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     }
 
     @Provides
     @Singleton
-    fun providesRetrofitService(moshi: Moshi): Retrofit {
+    fun providesRetrofitService(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
         return Retrofit.Builder()
             .baseUrl(WeatherAPI.BASE_URL)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .client(okHttpClient)
             .build()
     }
 

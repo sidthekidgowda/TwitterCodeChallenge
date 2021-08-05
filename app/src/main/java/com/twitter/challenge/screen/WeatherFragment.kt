@@ -46,28 +46,36 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
 
         nextFiveButton.setOnClickListener {
             nextFiveButton.isClickable = false
-            //fetch next five
+            viewModel.fetchNextFiveDays()
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.weatherState.collect { state -> state.update() }
+                viewModel.weatherState.collect { state -> state.updateScreen() }
             }
         }
     }
 
-    private fun WeatherViewModel.WeatherState.update() {
+    private fun WeatherViewModel.WeatherState.updateScreen() {
         when {
             weatherloading -> {
                 loadingTextView.isVisible = true
             }
             weatherError -> {
-                loadingTextView.text = "Failed Fetching"
+                loadingTextView.text = getString(R.string.current_weather_error)
+            }
+            nextFiveLoading -> {
+                nextFiveButton.text = getString(R.string.loading)
+            }
+            stdDevError -> {
+                standardDeviationGroup.isVisible = true
+                standardDevTextView.text = getString(R.string.std_dev_error)
             }
             weatherResult != null -> {
                 loadingTextView.isVisible = false
                 currentWeatherGroup.isVisible = true
                 nextFiveButton.isVisible = true
+                nextFiveButton.text = getString(R.string.next_five_days)
                 val currentTemp = weatherResult.weather.currentWeather.temp
                 temperatureTexView.text = getString(R.string.temperature, currentTemp, TemperatureConverter.celsiusToFahrenheit(currentTemp.toFloat()))
                 val windSpeed = weatherResult.weather.wind.speed
@@ -81,13 +89,6 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
                     standardDeviationGroup.isVisible = true
                     standardDevTextView.text = weatherResult.stdDev.toString()
                 }
-            }
-            nextFiveLoading -> {
-                nextFiveButton.text = "LOADING..."
-            }
-            stdDevError -> {
-                standardDeviationGroup.isVisible = true
-                standardDevTextView.text = "Failed"
             }
         }
     }

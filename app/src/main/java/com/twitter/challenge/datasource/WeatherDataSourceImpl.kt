@@ -22,6 +22,8 @@ class WeatherDataSourceImpl @Inject constructor(
     }
 
     override fun futureWeatherForDays(days: IntRange): Flow<List<Weather>> {
-        return flow {  }
+        return flow {
+
+        }
     }
 }
