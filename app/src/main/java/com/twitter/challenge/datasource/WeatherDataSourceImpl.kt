@@ -11,6 +11,7 @@ import javax.inject.Named
 
 class WeatherDataSourceImpl @Inject constructor(
     private val weatherAPI: WeatherAPI,
+    private val dataSourceScope: CoroutineScope,
     @Named("io") private val ioDispatcher: CoroutineDispatcher
 ) : WeatherDataSource {
 
@@ -18,11 +19,9 @@ class WeatherDataSourceImpl @Inject constructor(
         private val TAG = WeatherDataSourceImpl::class.java.simpleName
     }
 
-    private val scope = CoroutineScope(SupervisorJob())
-
     private val currentWeather: SharedFlow<WeatherResponse> = fetchCurrentWeather()
         .shareIn(
-            scope = scope,
+            scope = dataSourceScope,
             replay = 1,
             started = SharingStarted.WhileSubscribed(5000)
         )
