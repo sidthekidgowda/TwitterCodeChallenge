@@ -82,17 +82,20 @@ class WeatherViewModel @Inject constructor(
         }
     }
 
-    fun fetchNextFiveDays() {
+    fun fetchNextNDays(days: IntRange) {
         _weatherState.value = _weatherState.value.copy(nextFiveLoading = true)
         viewModelScope.launch {
-            weatherDataSource.futureWeatherForDays(days = 1..5)
+            weatherDataSource.futureWeatherForDays(days = days)
                     .map { it.calculateStandardDeviation() }
                     .map { stdDev ->
+                        //std dev error could be true from previous fetch, set to false
+                        //when refetching
                         _weatherState.value.copy(
                             nextFiveLoading = false,
                             weatherResult = _weatherState.value.weatherResult!!.copy(
                                     stdDev = stdDev
-                            )
+                            ),
+                            stdDevError = false
                         )
                     }
                     .catch { e ->

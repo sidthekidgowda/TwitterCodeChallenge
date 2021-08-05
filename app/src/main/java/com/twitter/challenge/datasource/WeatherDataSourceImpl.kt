@@ -3,6 +3,9 @@ package com.twitter.challenge.datasource
 import com.twitter.challenge.model.Weather
 import com.twitter.challenge.network.WeatherAPI
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -23,7 +26,13 @@ class WeatherDataSourceImpl @Inject constructor(
 
     override fun futureWeatherForDays(days: IntRange): Flow<List<Weather>> {
         return flow {
-
-        }
+            coroutineScope {
+                val futureWeatherDeferred = days.map {
+                    async { weatherAPI.futureWeatherForDay(it) }
+                }.toList()
+                val futureWeather = futureWeatherDeferred.awaitAll()
+                emit(futureWeather)
+            }
+        }.flowOn(ioDispatcher)
     }
 }

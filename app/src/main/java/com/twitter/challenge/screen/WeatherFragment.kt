@@ -32,6 +32,9 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
 
     private val viewModel: WeatherViewModel by viewModels()
 
+    //ideally would like to inject this
+    private val nDays: IntRange = 1..5
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -45,8 +48,7 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
         standardDeviationGroup = view.findViewById(R.id.standard_deviation_group)
 
         nextFiveButton.setOnClickListener {
-            nextFiveButton.isClickable = false
-            viewModel.fetchNextFiveDays()
+            viewModel.fetchNextNDays(nDays)
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -65,9 +67,13 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
                 loadingTextView.text = getString(R.string.current_weather_error)
             }
             nextFiveLoading -> {
+                nextFiveButton.isClickable = false
                 nextFiveButton.text = getString(R.string.loading)
+                standardDeviationGroup.isVisible = false
             }
             stdDevError -> {
+                nextFiveButton.text = getString(R.string.next_five_days)
+                nextFiveButton.isClickable = true
                 standardDeviationGroup.isVisible = true
                 standardDevTextView.text = getString(R.string.std_dev_error)
             }
@@ -87,6 +93,7 @@ class WeatherFragment : Fragment(R.layout.weather_fragment) {
                 // stdDev returned
                 if (weatherResult.stdDev > -1) {
                     standardDeviationGroup.isVisible = true
+                    nextFiveButton.isVisible = false
                     standardDevTextView.text = weatherResult.stdDev.toString()
                 }
             }
