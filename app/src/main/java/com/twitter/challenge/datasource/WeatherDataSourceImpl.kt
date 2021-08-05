@@ -44,7 +44,6 @@ class WeatherDataSourceImpl @Inject constructor(
 
     override fun futureWeatherForDays(days: IntRange): Flow<List<Weather>> {
         return flow {
-            delay(5000)
             coroutineScope {
                 val futureWeatherDeferred = days.map {
                     async { weatherAPI.futureWeatherForDay(it) }
