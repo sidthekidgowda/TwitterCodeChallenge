@@ -42,14 +42,17 @@ class WeatherViewModel @Inject constructor(
             val stdDevError: Boolean
     ) : Serializable
 
+    // reset next five loading to false if process gets killed
     private val _weatherState = MutableStateFlow(
-        savedStateHandle.get(KEY_WEATHER_STATE) ?: WeatherState(
-            weatherloading = true,
-            weatherError = false,
-            weatherResult = null,
-            nextFiveLoading = false,
-            stdDevError = false
-    ))
+        savedStateHandle.get<WeatherState>(KEY_WEATHER_STATE)?.copy(nextFiveLoading = false)
+            ?: WeatherState(
+                weatherloading = true,
+                weatherError = false,
+                weatherResult = null,
+                nextFiveLoading = false,
+                stdDevError = false
+            )
+    )
 
     val weatherState: Flow<WeatherState> = _weatherState
 
@@ -122,11 +125,5 @@ class WeatherViewModel @Inject constructor(
 
     private fun List<Weather>.calculateStandardDeviation(): Double {
         return map { it.currentWeather.temp }.calculateStandardDeviation()
-    }
-
-    override fun onCleared() {
-        // reset next five loading in case of process death to allow stdDev to be fetched again
-        _weatherState.value = _weatherState.value.copy(nextFiveLoading = false)
-        super.onCleared()
     }
 }
