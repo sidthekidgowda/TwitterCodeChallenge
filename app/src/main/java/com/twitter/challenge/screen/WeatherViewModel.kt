@@ -63,26 +63,7 @@ class WeatherViewModel @Inject constructor(
 
         viewModelScope.launch {
             weatherDataSource.currentWeather()
-                    .map {
-                        when(it) {
-                            is WeatherResponse.Failure ->
-                                WeatherState(
-                                    weatherloading = false,
-                                    weatherError = true,
-                                    weatherResult = null,
-                                    nextFiveLoading = false,
-                                    stdDevError = false
-                                )
-                            is WeatherResponse.Success ->
-                                _weatherState.value.copy(
-                                    weatherloading = false,
-                                    weatherResult = WeatherResult(
-                                        it.weather,
-                                        _weatherState.value.weatherResult?.stdDev ?: -1.0
-                                    )
-                                )
-                        }
-                    }
+                    .map { it.calculateState() }
                     .flowOn(computationDispatcher)
                     .collect { weatherState ->
                         _weatherState.value = weatherState
@@ -120,6 +101,42 @@ class WeatherViewModel @Inject constructor(
                     .collect { weatherState ->
                         _weatherState.value = weatherState
                     }
+        }
+    }
+
+    private fun WeatherResponse.calculateState(): WeatherState {
+        val currentState = _weatherState.value
+        return when(this) {
+            is WeatherResponse.Failure -> {
+                if (currentState.weatherResult != null) {
+                    WeatherState(
+                        weatherloading = false,
+                        weatherError = false,
+                        weatherResult = currentState.weatherResult.copy(),
+                        nextFiveLoading = false,
+                        stdDevError = false
+                    )
+                } else {
+                    WeatherState(
+                        weatherloading = false,
+                        weatherError = true,
+                        weatherResult = null,
+                        nextFiveLoading = false,
+                        stdDevError = false
+                    )
+                }
+            }
+            is WeatherResponse.Success ->
+                currentState.copy(
+                    weatherloading = false,
+                    weatherError = false,
+                    weatherResult = WeatherResult(
+                        this.weather,
+                        _weatherState.value.weatherResult?.stdDev ?: -1.0
+                    ),
+                    nextFiveLoading = false,
+                    stdDevError = false
+                )
         }
     }
 
