@@ -3,7 +3,6 @@ package com.twitter.challenge.datasource
 import android.app.Application
 import com.twitter.challenge.WeatherApplication
 import com.twitter.challenge.network.WeatherAPI
-import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,7 +10,6 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import java.lang.Appendable
 import javax.inject.Named
 import javax.inject.Singleton
 
